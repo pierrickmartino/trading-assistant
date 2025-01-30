@@ -121,6 +121,24 @@ def calculate_insights(window, dow_window):
         dow_rolling_avg = dow_window['Close'].rolling(window=5).mean().iloc[-1]
         # market_open_duration = get_market_open_duration(window)
 
+        # Calculate Ichimoku indicators
+        # Tenkan-sen (Conversion Line): (9-period high + 9-period low)/2))
+        nine_period_high = window['High'].rolling(window= 9).max().iloc[-1]
+        nine_period_low = window['Low'].rolling(window= 9).min().iloc[-1]
+        tenkan_sen = (nine_period_high + nine_period_low) /2
+        # Kijun-sen (Base Line): (26-period high + 26-period low)/2))
+        period26_high = window['High'].rolling(window=26).max().iloc[-1]
+        period26_low = window['Low'].rolling(window=26).min().iloc[-1]
+        kijun_sen = (period26_high + period26_low) / 2
+        # Senkou Span A (Leading Span A): (Conversion Line + Base Line)/2))
+        # window['senkou_span_a'] = ((window['tenkan_sen'] + window['kijun_sen']) / 2).shift(26)
+        # Senkou Span B (Leading Span B): (52-period high + 52-period low)/2))
+        # period52_high = window['High'].rolling(window=52).max()
+        # period52_low = window['Low'].rolling(window=52).min()
+        # window['senkou_span_b'] = ((period52_high + period52_low) / 2).shift(26)
+        # The most current closing price plotted 26 time periods behind (optional)
+        # window['chikou_span'] = window['Close'].shift(-26)
+
         # Print the calculated insights
         print("***")
         print(f"Last price: {last_price:.2f}")
@@ -135,6 +153,8 @@ def calculate_insights(window, dow_window):
         print(f"Dow Jones 7-day Rolling Average: {dow_rolling_avg:.2f}")
         print(f"Daily High: {daily_high:.2f}, Daily Low: {daily_low:.2f}")
         print(f"Buying Momentum: {buying_momentum:.2f}, Selling Momentum: {selling_momentum:.2f}")
+        print(f"Tenkan Sen: {tenkan_sen:.2f}")
+        print(f"Kijun Sen: {kijun_sen:.2f}")
         # print(f"Market has been open for {market_open_duration:.2f} minutes")
         print("***")
         
@@ -142,7 +162,7 @@ def calculate_insights(window, dow_window):
         current_minute = datetime.now().minute
         if current_minute % 5 == 0:
             get_natural_language_insights(
-                rolling_avg, ema7, ema20, ema50, ema100, ema200, rsi, bollinger_upper, bollinger_lower,
+                rolling_avg, ema7, ema20, ema50, ema100, ema200, tenkan_sen, kijun_sen, rsi, bollinger_upper, bollinger_lower,
                 price_change, volume_change, dow_rolling_avg,
                 dow_price_change, dow_volume_change, daily_high, daily_low, buying_momentum, selling_momentum,
                 window.index[-1].time().strftime("%H:%M:%S")
@@ -150,25 +170,26 @@ def calculate_insights(window, dow_window):
 
 # Function to generate stock insights using an LLM
 def get_natural_language_insights(
-    rolling_avg, ema7, ema20, ema50, ema100, ema200, rsi, bollinger_upper, bollinger_lower,
+    rolling_avg, ema7, ema20, ema50, ema100, ema200, tenkan_sen, kijun_sen, rsi, bollinger_upper, bollinger_lower,
     price_change, volume_change, dow_rolling_avg, dow_price_change, dow_volume_change, daily_high, daily_low, buying_momentum, selling_momentum, timestamp
 
 ):
     prompt = f"""
-    You are one of the best professional crypto trader with advanced skills in data analysis. 
+    You are a professional crypto trader with advanced skills in Technical Analysis and Ichimoku methodology. 
     Bitcoin's price has a 7-day rolling average of {rolling_avg:.2f}.
     The Exponential Moving Average are EMA7: {ema7:.2f}, EMA20: {ema20:.2f}, EMA50: {ema50:.2f}, EMA100: {ema100:.2f}, EMA200: {ema200:.2f}. 
     The Relative Strength Index (RSI) is {rsi:.2f}.
     The Bollinger Bands are set with an upper band of {bollinger_upper:.2f} and a lower band of {bollinger_lower:.2f}.
     The price has changed by {price_change:.2f}, and the volume has shifted by {volume_change}.
+    Ichimoku Indicators are : Tenkan Sen: {tenkan_sen:.2f}, Kijun Sen: {kijun_sen:.2f}.
     The DOW price has changed by {dow_price_change:.2f}, and the volume has shifted by {dow_volume_change}.
     Meanwhile, the Dow Jones index has a 7-day rolling average of {dow_rolling_avg:.2f}.
     Yesterday's high was {daily_high:.2f} and low was {daily_low:.2f}.
     The buying momentum is {buying_momentum:.2f} and selling momentum is {selling_momentum:.2f}.
-    Based on this data, provide insights into the current stock trend and the general market sentiment.
+    Based on this data, provide insights into the current crypto trend and the general market sentiment.
     Provide all the necessary information to decide if we should buy or sell or nothing at the moment.
-    Your answer should be structured with a bullet-point mode. 
-    The insights should not be longer than 150 words and should not have an introduction. 
+    Your answer should be structured in a bullet-point mode. 
+    The insights should not be longer than 250 words and should not have an introduction. 
     """
     response = ollama.chat(
             model="llama3.2",
