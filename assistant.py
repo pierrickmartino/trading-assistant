@@ -34,8 +34,6 @@ daily_low = float('inf')  # Track the lowest price of the day
 buying_momentum = 0  # Track accumulation of buying pressure
 selling_momentum = 0  # Track accumulation of selling pressure
 
-
-
 # Function to process a new stock update every minute
 def process_stock_update():
     global rolling_window, data, dow_rolling_window, dow_data
@@ -94,6 +92,7 @@ def process_stock_update():
 # Function to analyze stock trends and generate insights
 def calculate_insights(window, dow_window):
     if len(window) >= 5:
+        last_price = window['Close'].iloc[-1]
         rolling_avg = window['Close'].rolling(window=7).mean().iloc[-1]  # 7-day rolling average
         price_change = window['Close'].iloc[-1] - window['Close'].iloc[-2] if len(window) >= 2 else 0
         volume_change = window['Volume'].iloc[-1] - window['Volume'].iloc[-2] if len(window) >= 2 else 0
@@ -123,6 +122,8 @@ def calculate_insights(window, dow_window):
         # market_open_duration = get_market_open_duration(window)
 
         # Print the calculated insights
+        print("***")
+        print(f"Last price: {last_price:.2f}")
         print(f"7-day Rolling Average: {rolling_avg:.2f}")
         print(f"EMA7: {ema7:.2f}, EMA20: {ema20:.2f}, EMA50: {ema50:.2f}, EMA100: {ema100:.2f}, EMA200: {ema200:.2f},")
         print(f"RSI: {rsi:.2f}")
@@ -135,6 +136,7 @@ def calculate_insights(window, dow_window):
         print(f"Daily High: {daily_high:.2f}, Daily Low: {daily_low:.2f}")
         print(f"Buying Momentum: {buying_momentum:.2f}, Selling Momentum: {selling_momentum:.2f}")
         # print(f"Market has been open for {market_open_duration:.2f} minutes")
+        print("***")
         
         # Generate natural language insights every 5 minutes based on the system clock
         current_minute = datetime.now().minute
@@ -153,7 +155,7 @@ def get_natural_language_insights(
 
 ):
     prompt = f"""
-    You are a professional crypto trader with advanced skills in data analysis. 
+    You are one of the best professional crypto trader with advanced skills in data analysis. 
     Bitcoin's price has a 7-day rolling average of {rolling_avg:.2f}.
     The Exponential Moving Average are EMA7: {ema7:.2f}, EMA20: {ema20:.2f}, EMA50: {ema50:.2f}, EMA100: {ema100:.2f}, EMA200: {ema200:.2f}. 
     The Relative Strength Index (RSI) is {rsi:.2f}.
@@ -169,7 +171,7 @@ def get_natural_language_insights(
     The insights should not be longer than 150 words and should not have an introduction. 
     """
     response = ollama.chat(
-            model="llama3.1",
+            model="llama3.2",
             messages=[{"role": "user", "content": prompt}]
         )
     response_text = response['message']['content'].strip()
