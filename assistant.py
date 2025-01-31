@@ -186,10 +186,11 @@ def get_natural_language_insights(
     Meanwhile, the Dow Jones index has a 7-day rolling average of {dow_rolling_avg:.2f}.
     Yesterday's high was {daily_high:.2f} and low was {daily_low:.2f}.
     The buying momentum is {buying_momentum:.2f} and selling momentum is {selling_momentum:.2f}.
-    Based on this data, provide insights into the current crypto trend and the general market sentiment.
-    Provide all the necessary information to decide if we should buy or sell or nothing at the moment.
-    Your answer should be structured in a bullet-point mode. 
+    Based on this data, provide insights into the current price trend and the general market sentiment.
+    Provide all the information you need to decide whether to buy, sell or do nothing for the time being.
+    Your answer should include support and resistance area.
     The insights should not be longer than 250 words and should not have an introduction. 
+    Your answer should be structured in a bullet-point mode. 
     """
     response = ollama.chat(
             model="llama3.2",
